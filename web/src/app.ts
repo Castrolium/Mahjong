@@ -1,5 +1,6 @@
 import { GameCore } from './core/game';
 import { TileModel } from './core/tile';
+import { loadAssets } from './ui/assets';
 import { CanvasRenderer } from './ui/renderer';
 import { setupControls } from './ui/controls';
 
@@ -46,7 +47,7 @@ const buildDemoTiles = (): TileModel[] => {
 
 const createGame = (): GameCore => new GameCore(buildDemoTiles());
 
-const initializeUi = (): void => {
+const initializeUi = async (): Promise<void> => {
   const canvas = document.getElementById('board-canvas') as HTMLCanvasElement | null;
   const board = document.getElementById('board');
   const newGameButton = document.getElementById('new-game') as HTMLButtonElement | null;
@@ -68,7 +69,14 @@ const initializeUi = (): void => {
   }
 
   const game = createGame();
-  const renderer = new CanvasRenderer(canvas, game, { zoom: 100 });
+  let assets = undefined;
+  try {
+    assets = await loadAssets();
+  } catch (error) {
+    console.warn('Failed to load assets, falling back to vector tiles.', error);
+  }
+
+  const renderer = new CanvasRenderer(canvas, game, { zoom: 100, assets });
 
   const state = {
     game,

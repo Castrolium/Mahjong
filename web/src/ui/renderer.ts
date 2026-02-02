@@ -18,6 +18,7 @@ import {
 } from '../core/constants';
 import { GameCore } from '../core/game';
 import { Tile } from '../core/tile';
+import { SpriteFrame, UiAssets } from './assets';
 
 export type ZoomLevel = 100 | 125 | 150 | 200;
 
@@ -33,6 +34,7 @@ export interface RendererOptions {
   zoom?: ZoomLevel;
   origin?: { x: number; y: number };
   background?: string;
+  assets?: UiAssets;
 }
 
 const ZOOM_SETTINGS: Record<ZoomLevel, ZoomSettings> = {
@@ -73,6 +75,7 @@ export class CanvasRenderer {
   private zoom: ZoomSettings;
   private origin: { x: number; y: number };
   private background: string;
+  private assets?: UiAssets;
 
   hoveredTile: Tile | null = null;
 
@@ -90,6 +93,7 @@ export class CanvasRenderer {
     this.zoom = ZOOM_SETTINGS[options.zoom ?? 100];
     this.origin = options.origin ?? DEFAULT_ORIGIN;
     this.background = options.background ?? '#0f1115';
+    this.assets = options.assets;
     this.resizeToContainer();
   }
 
@@ -187,10 +191,30 @@ export class CanvasRenderer {
     this.drawPolygon(leftSide, this.shadeColor(baseColor, -20));
     this.drawPolygon(lowerSide, this.shadeColor(baseColor, -30));
 
-    this.ctx.fillStyle = topColor;
+    const spriteFrame = this.getSpriteFrame(tile.type);
+    if (spriteFrame && this.assets) {
+      this.ctx.drawImage(
+        this.assets.tilesImage,
+        spriteFrame.x,
+        spriteFrame.y,
+        spriteFrame.width,
+        spriteFrame.height,
+        x,
+        y,
+        tileSize,
+        tileSize,
+      );
+      if (tile.selected) {
+        this.ctx.fillStyle = 'rgba(254, 243, 199, 0.35)';
+        this.ctx.fillRect(x, y, tileSize, tileSize);
+      }
+    } else {
+      this.ctx.fillStyle = topColor;
+      this.ctx.fillRect(x, y, tileSize, tileSize);
+    }
+
     this.ctx.strokeStyle = tile.selected ? '#f59e0b' : '#111827';
     this.ctx.lineWidth = tile.selected ? 2 : 1;
-    this.ctx.fillRect(x, y, tileSize, tileSize);
     this.ctx.strokeRect(x, y, tileSize, tileSize);
 
     if (this.hoveredTile?.id === tile.id) {
@@ -199,9 +223,11 @@ export class CanvasRenderer {
       this.ctx.strokeRect(x - 1, y - 1, tileSize + 2, tileSize + 2);
     }
 
-    this.ctx.fillStyle = '#111827';
-    this.ctx.font = `${Math.max(10, tileSize / 3)}px sans-serif`;
-    this.ctx.fillText(`${tile.type}`, x + tileSize / 3, y + tileSize / 1.6);
+    if (!spriteFrame) {
+      this.ctx.fillStyle = '#111827';
+      this.ctx.font = `${Math.max(10, tileSize / 3)}px sans-serif`;
+      this.ctx.fillText(`${tile.type}`, x + tileSize / 3, y + tileSize / 1.6);
+    }
   }
 
   private drawPolygon(points: Array<{ x: number; y: number }>, fill: string): void {
@@ -302,5 +328,20 @@ export class CanvasRenderer {
     const saturation = Number(match[2]);
     const lightness = Math.min(90, Math.max(10, Number(match[3]) + amount));
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+  }
+
+  private getSpriteFrame(tileType: number): SpriteFrame | null {
+    const manifest = this.assets?.tileManifest;
+    if (!manifest) {
+      return null;
+    }
+
+    const frameKeys = Object.keys(manifest.frames);
+    if (frameKeys.length === 0) {
+      return null;
+    }
+
+    const normalized = ((tileType % frameKeys.length) + frameKeys.length) % frameKeys.length;
+    return manifest.frames[String(normalized)] ?? null;
   }
 }
