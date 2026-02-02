@@ -21,9 +21,18 @@ export interface UiAssets {
   };
 }
 
-const TILE_SPRITE_URL = '/assets/tiles/tiles.png';
-const TILE_MANIFEST_URL = '/assets/tiles/tiles.json';
-const UI_MANIFEST_URL = '/assets/ui/ui.json';
+const resolveBaseUrl = (): string => {
+  const basePath = import.meta.env.BASE_URL || '/';
+  if (typeof window === 'undefined') {
+    return basePath;
+  }
+  return new URL(basePath, window.location.origin).toString();
+};
+
+const BASE_URL = resolveBaseUrl();
+const TILE_SPRITE_URL = new URL('assets/tiles/tiles.png', BASE_URL).toString();
+const TILE_MANIFEST_URL = new URL('assets/tiles/tiles.json', BASE_URL).toString();
+const UI_MANIFEST_URL = new URL('assets/ui/ui.json', BASE_URL).toString();
 
 interface UiManifest {
   images: {
@@ -38,6 +47,8 @@ const loadImage = (src: string): Promise<HTMLImageElement> =>
     img.onerror = () => reject(new Error(`Failed to load image: ${src}`));
     img.src = src;
   });
+
+const resolveAssetUrl = (path: string): string => new URL(path, BASE_URL).toString();
 
 const loadManifest = async (): Promise<TileManifest> => {
   const response = await fetch(TILE_MANIFEST_URL);
@@ -59,11 +70,11 @@ export const loadAssets = async (): Promise<UiAssets> => {
   ]);
 
   const [tilesImage, logo] = await Promise.all([
-    loadImage(tileManifest.image || TILE_SPRITE_URL),
+    loadImage(tileManifest.image ? resolveAssetUrl(tileManifest.image) : TILE_SPRITE_URL),
     loadImage(
       uiManifest.images.logo.startsWith('data:')
         ? uiManifest.images.logo
-        : `/assets/ui/${uiManifest.images.logo}`,
+        : resolveAssetUrl(`assets/ui/${uiManifest.images.logo}`),
     ),
   ]);
 

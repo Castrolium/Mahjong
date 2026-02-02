@@ -76,6 +76,7 @@ export class CanvasRenderer {
   private origin: { x: number; y: number };
   private background: string;
   private assets?: UiAssets;
+  private lastSize: { width: number; height: number } | null = null;
 
   hoveredTile: Tile | null = null;
 
@@ -110,6 +111,16 @@ export class CanvasRenderer {
     const targetWidth = parent?.clientWidth ?? 960;
     const targetHeight = parent?.clientHeight ?? 640;
     const pixelRatio = window.devicePixelRatio || 1;
+
+    if (
+      this.lastSize &&
+      this.lastSize.width === targetWidth &&
+      this.lastSize.height === targetHeight
+    ) {
+      return;
+    }
+
+    this.lastSize = { width: targetWidth, height: targetHeight };
 
     this.canvas.width = targetWidth * pixelRatio;
     this.canvas.height = targetHeight * pixelRatio;

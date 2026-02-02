@@ -117,7 +117,13 @@ export const setupControls = (
         updateStatus('Selection cleared.');
         break;
       case 'matched':
-        updateStatus(result.gameWon ? 'You cleared the board!' : 'Tiles matched.');
+        if (result.gameWon) {
+          updateStatus('You cleared the board!');
+        } else if (result.noMoves) {
+          updateStatus('Tiles matched. No more moves available.');
+        } else {
+          updateStatus('Tiles matched.');
+        }
         break;
       case 'mismatch':
         updateStatus('Tiles do not match.');
