@@ -1,13 +1,23 @@
-name: CI
+name: Deploy to GitHub Pages
 
 on:
   push:
     branches: ["main"]
-  pull_request:
-    branches: ["main"]
   workflow_dispatch:
 
+# 1. ADD PERMISSIONS (Required for Pages)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 2. ALLOW ONE CONCURRENT DEPLOYMENT
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
 jobs:
+  # Build Job
   build:
     runs-on: ubuntu-latest
     defaults:
@@ -15,16 +25,20 @@ jobs:
         working-directory: web
     steps:
       - uses: actions/checkout@v4
-
+      
       - name: Use Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
           cache-dependency-path: web/package-lock.json
-
+          
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
+
+      # 3. UPLOAD THE BUILT WEBSITE
+      - name: Upload artifact
+        uses:
