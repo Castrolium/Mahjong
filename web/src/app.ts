@@ -1,5 +1,11 @@
 import { GameCore } from './core/game';
 import { TileModel } from './core/tile';
+import {
+  getDifficulty,
+  getMessagesVisible,
+  getOptionToggles,
+  getZoomFactor,
+} from './platform/settings';
 import { loadAssets } from './ui/assets';
 import { CanvasRenderer } from './ui/renderer';
 import { setupControls } from './ui/controls';
@@ -54,6 +60,10 @@ const initializeUi = async (): Promise<void> => {
   const hintButton = document.getElementById('hint') as HTMLButtonElement | null;
   const undoButton = document.getElementById('undo') as HTMLButtonElement | null;
   const zoomSelect = document.getElementById('zoom') as HTMLSelectElement | null;
+  const messagesToggle = document.getElementById('messages-visible') as HTMLInputElement | null;
+  const difficultySelect = document.getElementById('difficulty') as HTMLSelectElement | null;
+  const watchBuildsToggle = document.getElementById('watch-builds') as HTMLInputElement | null;
+  const peekToggle = document.getElementById('peek-mode') as HTMLInputElement | null;
   const statusLabel = document.getElementById('status');
 
   if (
@@ -63,10 +73,26 @@ const initializeUi = async (): Promise<void> => {
     !hintButton ||
     !undoButton ||
     !zoomSelect ||
+    !messagesToggle ||
+    !difficultySelect ||
+    !watchBuildsToggle ||
+    !peekToggle ||
     !statusLabel
   ) {
     return;
   }
+
+  const zoomFactor = getZoomFactor();
+  const messagesVisible = getMessagesVisible();
+  const difficulty = getDifficulty();
+  const optionToggles = getOptionToggles();
+
+  zoomSelect.value = String(zoomFactor);
+  messagesToggle.checked = messagesVisible;
+  difficultySelect.value = difficulty;
+  watchBuildsToggle.checked = optionToggles.watchBuilds;
+  peekToggle.checked = optionToggles.peek;
+  statusLabel.style.display = messagesVisible ? 'flex' : 'none';
 
   const game = createGame();
   let assets = undefined;
@@ -76,7 +102,7 @@ const initializeUi = async (): Promise<void> => {
     console.warn('Failed to load assets, falling back to vector tiles.', error);
   }
 
-  const renderer = new CanvasRenderer(canvas, game, { zoom: 100, assets });
+  const renderer = new CanvasRenderer(canvas, game, { zoom: zoomFactor, assets });
 
   const state = {
     game,
@@ -90,6 +116,10 @@ const initializeUi = async (): Promise<void> => {
       hintButton,
       undoButton,
       zoomSelect,
+      messagesToggle,
+      difficultySelect,
+      watchBuildsToggle,
+      peekToggle,
       statusLabel,
     },
     {

@@ -60,6 +60,23 @@
         background: #334155;
       }
 
+      .panel label {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        font-size: 0.9rem;
+      }
+
+      .panel label.inline {
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .panel input[type='checkbox'] {
+        accent-color: #38bdf8;
+      }
+
       .status {
         padding: 10px 12px;
         background: #0f172a;
@@ -112,6 +129,25 @@
             <option value="150">150%</option>
             <option value="200">200%</option>
           </select>
+        </label>
+        <label class="inline">
+          <input type="checkbox" id="messages-visible" />
+          Show messages
+        </label>
+        <label>
+          Difficulty
+          <select id="difficulty">
+            <option value="beginner">Beginner</option>
+            <option value="expert">Expert</option>
+          </select>
+        </label>
+        <label class="inline">
+          <input type="checkbox" id="watch-builds" />
+          Watch builds
+        </label>
+        <label class="inline">
+          <input type="checkbox" id="peek-mode" />
+          Peek mode
         </label>
         <div class="status" id="status">Ready.</div>
       </section>
