@@ -46,7 +46,7 @@ jobs:
           # Verify your build folder name here!
           # If your build creates a 'dist' folder, use 'web/dist'
           # If it creates a 'build' folder, use 'web/build'
-          path: web/dist 
+          path: web/build
 
   # 4. DEPLOY JOB (New separate job)
   deploy:
