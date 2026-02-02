@@ -21,15 +21,7 @@ export interface UiAssets {
   };
 }
 
-const resolveBaseUrl = (): string => {
-  const basePath = import.meta.env.BASE_URL || '/';
-  if (typeof window === 'undefined') {
-    return basePath;
-  }
-  return new URL(basePath, window.location.origin).toString();
-};
-
-const BASE_URL = resolveBaseUrl();
+const BASE_URL = import.meta.env.BASE_URL || '/';
 const TILE_SPRITE_URL = new URL('assets/tiles/tiles.png', BASE_URL).toString();
 const TILE_MANIFEST_URL = new URL('assets/tiles/tiles.json', BASE_URL).toString();
 const UI_MANIFEST_URL = new URL('assets/ui/ui.json', BASE_URL).toString();
