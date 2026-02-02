@@ -5,50 +5,54 @@ on:
     branches: ["main"]
   workflow_dispatch:
 
-# 1. ADD PERMISSIONS (Required for Pages)
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 2. ALLOW ONE CONCURRENT DEPLOYMENT
+# Allow only one concurrent deployment
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  # Build Job
+  # Build job
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
+        # IMPORTANT: This tells GitHub your code is inside the 'web' folder
         working-directory: web
     steps:
-      - uses: actions/checkout@v4
-      
-      - name: Use Node.js
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          cache: npm
+          node-version: "20"
+          cache: 'npm'
+          # We must tell it exactly where the lock file is
           cache-dependency-path: web/package-lock.json
-          
+
       - name: Install dependencies
         run: npm ci
 
       - name: Build
         run: npm run build
 
-      # 3. UPLOAD THE BUILT WEBSITE
+      # Fix for Vite: Create .nojekyll to allow files starting with "_"
+      - name: Disable Jekyll
+        run: touch dist/.nojekyll
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Verify your build folder name here!
-          # If your build creates a 'dist' folder, use 'web/dist'
-          # If it creates a 'build' folder, use 'web/build'
-          path: web/build
+          # The upload action ignores 'working-directory', so we write the full path
+          path: web/dist
 
-  # 4. DEPLOY JOB (New separate job)
+  # Deployment job
   deploy:
     environment:
       name: github-pages
