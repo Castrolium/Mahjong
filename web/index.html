@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Taipei Mahjong - Web UI</title>
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: 'Segoe UI', sans-serif;
+        background: #0b0c10;
+        color: #e2e8f0;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: stretch;
+        justify-content: center;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 240px 1fr;
+        gap: 16px;
+        padding: 16px;
+        width: min(1280px, 100%);
+        box-sizing: border-box;
+      }
+
+      .panel {
+        background: #111827;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+      }
+
+      .panel h1 {
+        font-size: 1.2rem;
+        margin: 0 0 8px;
+      }
+
+      .panel button,
+      .panel select {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #1f2937;
+        background: #1e293b;
+        color: inherit;
+        font-size: 0.95rem;
+        cursor: pointer;
+      }
+
+      .panel button:hover,
+      .panel select:hover {
+        background: #334155;
+      }
+
+      .status {
+        padding: 10px 12px;
+        background: #0f172a;
+        border-radius: 8px;
+        border: 1px solid #1f2937;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+      }
+
+      .board-container {
+        position: relative;
+        background: #0f172a;
+        border-radius: 16px;
+        padding: 12px;
+        box-shadow: inset 0 0 0 1px #1f2937;
+      }
+
+      canvas {
+        display: block;
+        width: 100%;
+        height: 100%;
+        border-radius: 12px;
+      }
+
+      .overlay {
+        position: absolute;
+        inset: 16px;
+        pointer-events: none;
+        display: flex;
+        justify-content: flex-end;
+        align-items: flex-start;
+        font-size: 0.85rem;
+        color: #e2e8f0;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel">
+        <h1>Mahjong Controls</h1>
+        <button id="new-game">New Game</button>
+        <button id="hint">Hint</button>
+        <button id="undo">Undo</button>
+        <label>
+          Zoom
+          <select id="zoom">
+            <option value="100">100%</option>
+            <option value="125">125%</option>
+            <option value="150">150%</option>
+            <option value="200">200%</option>
+          </select>
+        </label>
+        <div class="status" id="status">Ready.</div>
+      </section>
+      <section class="board-container" id="board">
+        <canvas id="board-canvas" aria-label="Mahjong board"></canvas>
+        <div class="overlay">Canvas + DOM overlay</div>
+      </section>
+    </main>
+    <script type="module" src="./src/app.ts"></script>
+  </body>
+</html>
