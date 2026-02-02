@@ -1,5 +1,13 @@
 import { GameCore, MatchResult } from '../core/game';
 import { Tile } from '../core/tile';
+import {
+  Difficulty,
+  getOptionToggles,
+  setDifficulty,
+  setMessagesVisible,
+  setOptionToggles,
+  setZoomFactor,
+} from '../platform/settings';
 import { CanvasRenderer, ZoomLevel } from './renderer';
 
 export interface ControlElements {
@@ -7,6 +15,10 @@ export interface ControlElements {
   hintButton: HTMLButtonElement;
   undoButton: HTMLButtonElement;
   zoomSelect: HTMLSelectElement;
+  messagesToggle: HTMLInputElement;
+  difficultySelect: HTMLSelectElement;
+  watchBuildsToggle: HTMLInputElement;
+  peekToggle: HTMLInputElement;
   statusLabel: HTMLElement;
 }
 
@@ -25,9 +37,24 @@ export const setupControls = (
   elements: ControlElements,
   options: ControlOptions,
 ): void => {
+  let messagesVisible = elements.messagesToggle.checked;
+
+  const applyMessagesVisibility = (visible: boolean): void => {
+    messagesVisible = visible;
+    elements.statusLabel.style.display = visible ? 'flex' : 'none';
+    if (!visible) {
+      elements.statusLabel.textContent = '';
+    }
+  };
+
   const updateStatus = (message: string): void => {
+    if (!messagesVisible) {
+      return;
+    }
     elements.statusLabel.textContent = message;
   };
+
+  applyMessagesVisibility(messagesVisible);
 
   const setGame = (game: GameCore): void => {
     state.game = game;
@@ -125,7 +152,40 @@ export const setupControls = (
     const level = Number(elements.zoomSelect.value) as ZoomLevel;
     state.renderer.setZoom(level);
     state.renderer.render();
+    setZoomFactor(level);
     updateStatus(`Zoom set to ${level}%.`);
+  });
+
+  elements.messagesToggle.addEventListener('change', () => {
+    const visible = elements.messagesToggle.checked;
+    applyMessagesVisibility(visible);
+    setMessagesVisible(visible);
+    if (visible) {
+      updateStatus('Messages enabled.');
+    }
+  });
+
+  elements.difficultySelect.addEventListener('change', () => {
+    const difficulty = elements.difficultySelect.value as Difficulty;
+    setDifficulty(difficulty);
+    updateStatus(`Difficulty set to ${difficulty}.`);
+  });
+
+  const updateOptionToggle = (updates: Partial<ReturnType<typeof getOptionToggles>>): void => {
+    const current = getOptionToggles();
+    setOptionToggles({ ...current, ...updates });
+  };
+
+  elements.watchBuildsToggle.addEventListener('change', () => {
+    updateOptionToggle({ watchBuilds: elements.watchBuildsToggle.checked });
+    updateStatus(
+      elements.watchBuildsToggle.checked ? 'Build animation enabled.' : 'Build animation disabled.',
+    );
+  });
+
+  elements.peekToggle.addEventListener('change', () => {
+    updateOptionToggle({ peek: elements.peekToggle.checked });
+    updateStatus(elements.peekToggle.checked ? 'Peek mode enabled.' : 'Peek mode disabled.');
   });
 
   const canvas = state.renderer.getCanvas();
