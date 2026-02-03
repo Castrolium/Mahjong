@@ -108,8 +108,23 @@ export class CanvasRenderer {
 
   resizeToContainer(): void {
     const parent = this.canvas.parentElement;
-    const targetWidth = parent?.clientWidth ?? 960;
-    const targetHeight = parent?.clientHeight ?? 640;
+    const fallbackWidth = 960;
+    const fallbackHeight = 640;
+    if (!parent) {
+      this.resizeCanvas(fallbackWidth, fallbackHeight);
+      return;
+    }
+
+    const rect = parent.getBoundingClientRect();
+    const style = window.getComputedStyle(parent);
+    const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+    const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+    const targetWidth = Math.max(0, rect.width - paddingX) || fallbackWidth;
+    const targetHeight = Math.max(0, rect.height - paddingY) || fallbackHeight;
+    this.resizeCanvas(targetWidth, targetHeight);
+  }
+
+  private resizeCanvas(targetWidth: number, targetHeight: number): void {
     const pixelRatio = window.devicePixelRatio || 1;
 
     if (
