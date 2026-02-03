@@ -12,22 +12,55 @@ import { setupControls } from './ui/controls';
 
 const createTilePairs = (positions: Array<[number, number, number]>): TileModel[] => {
   const tiles: TileModel[] = positions.map((pos, index) => new TileModel(index, ...pos));
-  const types: number[] = [];
 
-  const pairCount = Math.floor(tiles.length / 2);
-  for (let i = 0; i < pairCount; i += 1) {
-    types.push(i, i);
+  tiles.forEach((tile) => {
+    tile.visible = true;
+    tile.selected = false;
+  });
+
+  const game = new GameCore(tiles);
+  let pairIndex = 0;
+  let safety = tiles.length * 4;
+
+  while (tiles.some((tile) => tile.visible) && safety > 0) {
+    const freeTiles = tiles.filter((tile) => tile.visible && game.isTileFree(tile));
+    if (freeTiles.length < 2) {
+      break;
+    }
+
+    const firstIndex = Math.floor(Math.random() * freeTiles.length);
+    const first = freeTiles.splice(firstIndex, 1)[0];
+    const second = freeTiles[Math.floor(Math.random() * freeTiles.length)];
+
+    first.type = pairIndex;
+    second.type = pairIndex;
+    first.graph = pairIndex;
+    second.graph = pairIndex;
+    pairIndex += 1;
+
+    first.visible = false;
+    second.visible = false;
+    safety -= 1;
   }
 
-  while (types.length < tiles.length) {
-    types.push(types[types.length % pairCount]);
+  const unassigned = tiles.filter((tile) => tile.type < 0);
+  if (unassigned.length > 0) {
+    const fallbackTypes: number[] = [];
+    const pairCount = Math.floor(unassigned.length / 2);
+    for (let i = 0; i < pairCount; i += 1) {
+      fallbackTypes.push(pairIndex + i, pairIndex + i);
+    }
+    while (fallbackTypes.length < unassigned.length) {
+      fallbackTypes.push(pairIndex + pairCount - 1);
+    }
+    const shuffledTypes = fallbackTypes.sort(() => Math.random() - 0.5);
+    unassigned.forEach((tile, index) => {
+      tile.type = shuffledTypes[index];
+      tile.graph = tile.type;
+    });
   }
 
-  const shuffledTypes = types.sort(() => Math.random() - 0.5);
-
-  tiles.forEach((tile, index) => {
-    tile.type = shuffledTypes[index];
-    tile.graph = tile.type;
+  tiles.forEach((tile) => {
     tile.visible = true;
     tile.selected = false;
   });
@@ -51,7 +84,36 @@ const buildDemoTiles = (): TileModel[] => {
   return createTilePairs(positions);
 };
 
-const createGame = (): GameCore => new GameCore(buildDemoTiles());
+const hasFreeMatch = (game: GameCore): boolean => {
+  for (const tile of game.tiles) {
+    if (!tile.visible || !game.isTileFree(tile)) {
+      continue;
+    }
+    for (const other of game.tiles) {
+      if (
+        other.visible &&
+        other.id !== tile.id &&
+        other.type === tile.type &&
+        game.isTileFree(other)
+      ) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
+
+const createGame = (): GameCore => {
+  let attempt = 0;
+  let game: GameCore;
+
+  do {
+    game = new GameCore(buildDemoTiles());
+    attempt += 1;
+  } while (attempt < 50 && !hasFreeMatch(game));
+
+  return game;
+};
 
 const initializeUi = async (): Promise<void> => {
   const canvas = document.getElementById('board-canvas') as HTMLCanvasElement | null;
@@ -108,6 +170,14 @@ const initializeUi = async (): Promise<void> => {
     game,
     renderer,
   };
+
+  if (import.meta.env.DEV) {
+    (
+      window as Window & {
+        mahjongState?: typeof state;
+      }
+    ).mahjongState = state;
+  }
 
   setupControls(
     state,
