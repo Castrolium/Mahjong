@@ -109,27 +109,27 @@ export class GameCore {
       return false;
     }
 
-    testTile = this.getTile(tile.x, tile.y, tile.z + 1, false, true);
+    testTile = this.getTile(tile.x, tile.y, tile.z + 1, true, true);
     if (testTile) {
       topSide = testTile.visible;
     }
 
     if (!topSide) {
-      testTile = this.getTile(tile.x + 1, tile.y, tile.z + 1, false, true);
+      testTile = this.getTile(tile.x + 1, tile.y, tile.z + 1, true, true);
       if (testTile) {
         topSide = testTile.visible;
       }
     }
 
     if (!topSide) {
-      testTile = this.getTile(tile.x, tile.y + 1, tile.z + 1, false, true);
+      testTile = this.getTile(tile.x, tile.y + 1, tile.z + 1, true, true);
       if (testTile) {
         topSide = testTile.visible;
       }
     }
 
     if (!topSide) {
-      testTile = this.getTile(tile.x + 1, tile.y + 1, tile.z + 1, false, true);
+      testTile = this.getTile(tile.x + 1, tile.y + 1, tile.z + 1, true, true);
       if (testTile) {
         topSide = testTile.visible;
       }
